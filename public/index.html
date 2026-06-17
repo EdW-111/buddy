@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <!-- PWA / iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Buddy">
+  <meta name="theme-color" content="#0f0f1a">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+  <link rel="stylesheet" href="/style.css">
+  <title>Buddy</title>
+</head>
+<body data-state="waiting">
+
+  <!-- One-tap gate (iOS mic/audio unlock requirement) -->
+  <div id="overlay">
+    <div class="overlay-orb"></div>
+    <p class="overlay-hint">Tap anywhere to start talking</p>
+  </div>
+
+  <main>
+    <div class="orb-wrap">
+      <div class="orb-ring"></div>
+      <div class="orb-ring"></div>
+      <div id="orb"></div>
+    </div>
+
+    <p id="status"></p>
+
+    <div class="chat">
+      <div class="bubble user"  id="user-bubble"></div>
+      <div class="bubble buddy" id="buddy-bubble"></div>
+    </div>
+  </main>
+
+  <!-- ONNX runtime must load before the VAD bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/ort.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@0.0.19/dist/bundle.min.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
