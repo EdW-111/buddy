@@ -26,6 +26,11 @@ function showBubble(el, text) {
 overlay.addEventListener('click', async () => {
   overlay.classList.add('fade-out');
   setTimeout(() => overlay.remove(), 650);
+  // iOS: must call speak() inside a user gesture to unlock the audio pipeline.
+  // Don't cancel — let the near-silent utterance actually queue so iOS registers it.
+  const unlock = new SpeechSynthesisUtterance(' ');
+  unlock.volume = 0.01;
+  speechSynthesis.speak(unlock);
   await startVAD();
 }, { once: true });
 
@@ -161,9 +166,13 @@ function speak(text) {
       utter.onerror = () => { clearTimeout(timer); resolve(); };
       window.speechSynthesis.speak(utter);
     };
-    speechSynthesis.getVoices().length > 0
-      ? go()
-      : speechSynthesis.addEventListener('voiceschanged', go, { once: true });
+    if (speechSynthesis.getVoices().length > 0) {
+      go();
+    } else {
+      // iOS: voiceschanged may never fire — fall back after 300ms
+      const t = setTimeout(go, 300);
+      speechSynthesis.addEventListener('voiceschanged', () => { clearTimeout(t); go(); }, { once: true });
+    }
   });
 }
 
