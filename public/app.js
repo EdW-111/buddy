@@ -127,8 +127,16 @@ function encodeWAV(samples, sr = 16000) {
 }
 
 // ── TTS ──
-function getVoice() {
+function getVoice(text) {
   const voices = speechSynthesis.getVoices();
+  const isChinese = /[一-鿿]/.test(text);
+  if (isChinese) {
+    return (
+      voices.find(v => v.lang.startsWith('zh') && v.localService) ||
+      voices.find(v => v.lang.startsWith('zh')) ||
+      voices[0]
+    );
+  }
   return (
     voices.find(v => v.lang === 'en-US' && v.localService) ||
     voices.find(v => v.lang.startsWith('en') && v.localService) ||
@@ -140,14 +148,17 @@ function getVoice() {
 function speak(text) {
   return new Promise(resolve => {
     setState('speaking');
+    speechSynthesis.cancel(); // clear any stuck iOS queue
     const go = () => {
       const utter = new SpeechSynthesisUtterance(text);
-      const voice = getVoice();
+      const voice = getVoice(text);
       if (voice) utter.voice = voice;
       utter.rate  = 1.05;
       utter.pitch = 1.0;
-      utter.onend   = resolve;
-      utter.onerror = resolve;
+      // iOS onend often never fires — timeout ensures we always continue
+      const timer = setTimeout(resolve, Math.max(4000, text.length * 120));
+      utter.onend   = () => { clearTimeout(timer); resolve(); };
+      utter.onerror = () => { clearTimeout(timer); resolve(); };
       window.speechSynthesis.speak(utter);
     };
     speechSynthesis.getVoices().length > 0
