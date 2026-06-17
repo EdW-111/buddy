@@ -27,7 +27,6 @@ app.post('/respond', upload.single('audio'), async (req, res) => {
     const transcription = await groq().audio.transcriptions.create({
       file: fs.createReadStream(tmpFile),
       model: 'whisper-large-v3-turbo',
-      language: 'en',
     });
 
     const userText = transcription.text.trim();
@@ -37,6 +36,7 @@ app.post('/respond', upload.single('audio'), async (req, res) => {
       {
         role: 'system',
         content: `You are Buddy, a genuine close friend having a voice conversation. Rules:
+- Always reply in the same language the user is speaking — if they speak Chinese, reply in Chinese; if English, reply in English
 - Respond in 1-3 SHORT sentences only — this is voice, not text
 - Sound like a real person: use contractions, be casual, occasionally say "yeah" or "hmm"
 - Actually engage with what was said — ask a follow-up, share a reaction, be present
